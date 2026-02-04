@@ -1,0 +1,10 @@
+name = "lean-formal-reasoning"
+version = "0.1.0"
+defaultTargets = ["lean-formal-reasoning"]
+
+[[lean_lib]]
+name = "LeanFormalReasoning"
+
+[[lean_exe]]
+name = "lean-formal-reasoning"
+root = "Main"
