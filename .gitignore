@@ -12,6 +12,9 @@
 *.swo
 *~
 
+# Notes and temporary files
+notes/*
+
 # IDE files
 .vscode/
 .idea/
