@@ -1,7 +1,6 @@
 import Mathlib.Tactic
 
 -- Associativity of Addition
--- Renamed to avoid conflict with Mathlib's add_assoc
 theorem my_add_assoc (m n k : Nat) : m + (n + k) = (m + n) + k := by
     induction k with
     | zero =>
@@ -10,7 +9,6 @@ theorem my_add_assoc (m n k : Nat) : m + (n + k) = (m + n) + k := by
     repeat rw[Nat.add_succ]
     rw[ih]
 
--- Renamed to avoid conflict with Mathlib's mul_add
 theorem my_mul_add (m n k : Nat) : m * (n + k) = m * n + m * k := by
     induction k with
     | zero =>

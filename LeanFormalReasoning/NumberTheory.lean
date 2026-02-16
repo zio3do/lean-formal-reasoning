@@ -3,9 +3,16 @@ import LeanFormalReasoning.Arithmetic
 
 -- 2.3 Divisibility under Addition
 -- first existential proof; must construct witnesses
-theorem dvd_add {a b c : Nat} : a ∣ b → a ∣ c → a ∣ b + c := by
+theorem my_dvd_add {a b c : Nat} : a ∣ b → a ∣ c → a ∣ b + c := by
     -- proof
-    sorry
+    intro h1 h2
+    cases h1 with
+    | intro k hk =>
+    cases h2 with
+    | intro m hm =>
+    use k + m
+    rw [hk, hm]
+    rw [← Nat.mul_add]
 
 -- 2.4 Parity via Divisibility
 theorem even_or_odd (n : Nat) : (∃ k, n = 2 * k) ∨ (∃ k, n = 2 * k + 1) := by
@@ -14,14 +21,18 @@ theorem even_or_odd (n : Nat) : (∃ k, n = 2 * k) ∨ (∃ k, n = 2 * k + 1) :=
     | zero =>
     left
     use 0
-    | succ d hd =>
-    cases hd with
-    | inl hx =>
-    -- how do we work with the witness k in the proof?
-    cases hx with
-    | intro k hk =>
+    | succ n ih =>
+    cases ih with
+    | inl h =>
     right
+    apply Exists.elim h
+    intro k hk
     use k
     rw [hk]
-    | inr hy =>
-    cases hy with
+    | inr h =>
+    left
+    apply Exists.elim h
+    intro k hk
+    use k + 1
+    rw [hk]
+    rw [Nat.mul_add]
