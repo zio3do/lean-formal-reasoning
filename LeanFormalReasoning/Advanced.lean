@@ -1,17 +1,31 @@
 import Mathlib.Tactic
 
-/-
-Why Tier 3
-	•	Multi-theory: arithmetic + order + logic
-	•	Requires serious lemma planning
-	•	Very resistant to automation
+/-!
+# Advanced Multi-Lemma Proof
 
-What it proves
-	•	You can manage complex invariants
-	•	You can structure a proof like a mathematician and a formalist
-  -/
+This file contains the uniqueness theorem for the division algorithm—a capstone result
+requiring coordinated reasoning across arithmetic, order theory, and propositional logic.
+The proof demonstrates structured decomposition into manageable subgoals, explicit
+case analysis by contradiction, and manual manipulation of inequalities without
+relying on automated decision procedures.
 
- -- 3.1 Uniqueness of Division Algorithm
+This theorem showcases proof engineering at scale: organizing complex invariants,
+managing multiple hypotheses, and building transparent arguments through explicit lemma invocation.
+-/
+
+/-! ## Division Algorithm Uniqueness -/
+
+/--
+If `n = d*q + r` and `n = d*q' + r'` with both remainders less than `d`,
+then the quotients and remainders must be identical.
+
+Proof structure:
+1. Establish `q = q'` by contradiction via case analysis
+2. Use this to derive `r = r'` by direct cancellation
+
+This is a prime example of multi-step reasoning coordinating arithmetic bounds,
+inequality manipulation, and logical case splitting.
+-/
 theorem div_mod_unique (n d q r q' r' : Nat)
   (hd : d > 0)
   (h1 : n = d*q + r) (hr : r < d)

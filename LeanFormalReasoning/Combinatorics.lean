@@ -1,84 +1,65 @@
 import Mathlib.Data.Finset.Basic
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic -- the operators are separate modules from the datatypes
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 import Mathlib.Data.Finset.Range
+import Mathlib.Tactic
 
+/-!
+# Combinatorics: Triangular Number Sum
 
--- Use the fact that if 2*a = 2*b, then a = b (cancellation property)
-theorem eq_of_mul_eq_mul_right (a b : Nat) : 2 * a = 2 * b → a = b := by
-  intro h
-  -- Use the fact that 0 < 2 to cancel the multiplication
-  exact Nat.eq_of_mul_eq_mul_left (by decide : 0 < 2) h
+This file proves the closed-form formula for the sum of natural numbers from 0 to n.
+The proof demonstrates handling of natural number division (which truncates), requiring
+explicit divisibility arguments to justify algebraic manipulations.
 
+Key challenge: Unlike real-number arithmetic, `(n * (n + 1)) / 2` only equals the expected
+value when `2 ∣ n * (n + 1)`, necessitating a helper lemma establishing this divisibility
+through even/odd case analysis.
+-/
 
--- 2.6 Finite Sum Identity
 open Finset
 
--- bridges to combinatorics and contest math; also a good example of using the library
+/-! ## Helper Lemmas -/
+
+/--
+The product of any natural number and its successor is divisible by 2.
+Proved by case analysis on parity: if `n` is even, the product contains factor 2;
+if `n` is odd, then `n+1` is even.
+-/
+lemma two_dvd_prod_succ (n : Nat) : 2 ∣ n * (n + 1) := by
+  rcases Nat.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩
+  · -- n = 2k, so n * (n+1) = 2k * (2k+1)
+    use k * (2 * k + 1)
+    ring
+  · -- n = 2k+1, so n * (n+1) = (2k+1) * (2k+2) = (2k+1) * 2(k+1)
+    use (2 * k + 1) * (k + 1)
+    ring
+
+/-! ## Main Theorem -/
+
+/--
+The sum of natural numbers from 0 to n equals n(n+1)/2.
+
+Proof by induction on n. The successor case multiplies both sides by 2 to clear
+denominators, then uses divisibility lemmas to justify cancellation. The final
+algebraic verification is handled by `ring` after the conceptually difficult
+divisibility reasoning is explicit.
+-/
 theorem sum_range_id (n : Nat) :
   (range (n+1)).sum id = n*(n+1)/2 := by
-  -- why n+1? because range in Lean is EXCLUSIVE
-  -- proof
   induction n with
   | zero =>
-    simp -- sum over empty set is 0, and RHS is 0
-  | succ n ih =>
-    -- sum over range (n+2) equals sum over range (n+1) plus (n+1)
-
-    -- algebraic manipulation to get the desired form
-    -- 1) multiply both sides by 2 to clear the denominator
-         -- instead of succ_inj, we need like a "mul_eq_mul_right" or something to show that we can multiply both sides by 2 without changing the equality
-    have h0 : 2 * ((n * (n + 1)) / 2 + (n + 1)) = 2 * (n * (n + 1) / 2) + 2 * (n + 1) := by
-      rw[Nat.mul_add]
-    have h1 : 2*(n*(n+1) / 2) = n*(n+1) := by
-      sorry
-    have h2 : 2 * ((n * (n + 1)) / 2 + (n + 1)) = n*(n+1) + 2*(n+1) := by
-      rw[Nat.mul_add]
-      rw[h1]
-    have h3 : n*(n+1) + 2*(n+1) = (n + 1) * (n + 2) := by
-      rw[← Nat.right_distrib]
-      rw[Nat.mul_comm]
-    have h4 : 2 * ((n * (n + 1)) / 2 + (n + 1)) = (n + 1) * (n + 2) := by
-      rw[h2]
-      rw[h3]
-    have h5 : 2 * ((n + 1) * (n + 1 + 1) / 2) = (n + 1) * (n + 1 + 1) := by
-      rw[← Nat.mul_div_assoc]
-      rw[Nat.mul_div_cancel_left]
-      decide
-
-
-    rw [Finset.sum_range_succ]
-    rw[ih]
     simp
-    apply eq_of_mul_eq_mul_right
-    rw[h4]
-    rw[h5]
-    -- now, massage the RHS
-    --  distribute the 2* on the RHS
+  | succ n ih =>
+    rw [Finset.sum_range_succ, ih, id]
+    -- Goal: n * (n + 1) / 2 + (n + 1) = (n + 1) * (n + 2) / 2
 
+    -- Establish divisibility to cancel divisions on both sides
+    have h_div : 2 * (n * (n + 1) / 2) = n * (n + 1) :=
+      Nat.mul_div_cancel' (two_dvd_prod_succ n)
+    have h_div' : 2 * ((n + 1) * (n + 2) / 2) = (n + 1) * (n + 2) :=
+      Nat.mul_div_cancel' (two_dvd_prod_succ (n + 1))
 
-
-
-
-
-
-
-
-
-    -- 2) simplify both sides
-    -- CURRENT: how to show that multiplying 2 cancels division by 2?
-    -- have h3 : n * (n + 1) + 2 * (n + 1) = (n + 1) * (n + 2) := by
-    --   simp at h1
-
-    -- have even1 : 2 ∣ n * (n + 1) := Nat.even_mul_succ_self n
-    -- have even2 : 2 ∣ (n + 1) * (n + 2) := by
-    --   rw [Nat.mul_comm]; exact Nat.even_mul_succ_self (n + 1)
-    -- -- Cancel the 2's using the divisibility facts
-    -- exact Nat.eq_div_of_mul_eq_some even1 even2 h1
-
-
-
-
-
-
--- theorem mul_div_cancel_two (n : Nat) : (n * 2) / 2 = n :=
---   Nat.mul_div_cancel n (by decide)
+    -- Multiply both sides by 2 to clear denominators, then verify algebraically
+    apply Nat.eq_of_mul_eq_mul_left (by norm_num : 0 < 2)
+    rw [h_div']
+    rw [Nat.mul_add, h_div]
+    ring
